@@ -38,7 +38,7 @@ attr_accessor :code
   end
 
   def self.get_player_choice()
-    puts "Type in your guess separated by spaces (e.g. 1 3 5 4): "
+    puts "Type in your digits separated by spaces (e.g. 1 3 5 4):".reverse_color
     input = gets.chomp.split
     result = []
     if input.empty?
@@ -121,11 +121,9 @@ attr_accessor :code
     end
   end
 
-  def game_loop()
-    puts "                 " + "MASTERMIND GAME".bg_magenta
-    puts "     " + "Guess what 4 digit code I am thinking of. Digits (1-9)".magenta
-    puts "w" + " - digit is in code but not in this spot | ".magenta + "r".red + " - digit is in this spot".magenta
-
+  def guess()
+    puts "\nGuess what 4 digit code I am thinking of. Digits (1-9)".brown
+    puts "w" + " - digit is in code but not in this spot | ".brown + "r".red + " - digit is in this spot".brown
     round = 0
     max_rounds = 4
     self.randomize()
@@ -145,6 +143,93 @@ attr_accessor :code
       round += 1
     end
   end
+
+  def guess_code_given(code_array, guess_array, colors_arr)
+    red_indexes = []
+    white_indexes = []
+    result = []
+    free_indexes = []
+    numbers = [1,2,3,4,5,6,7,8,9]
+    used_numbers = []
+    if colors_arr.empty?
+      return guess_array
+    else
+      colors_arr.each_with_index do |x, index|
+        if x == "w"
+          white_indexes << index
+        elsif x == "\e[31mr\e[0m"
+          red_indexes << index
+        elsif x == "-"
+          free_indexes << index
+          used_numbers << guess_array[index]
+        end
+      end
+      free_indexes += white_indexes
+      free_indexes = free_indexes.uniq
+
+      red_indexes.each do |red_index|
+        result[red_index] = guess_array[red_index]
+      end
+      if white_indexes.length > 1
+        white_indexes.each do |white_index|
+          other_index = free_indexes.sample
+          while other_index == white_index
+            other_index = free_indexes.sample
+          end
+          result[other_index] = guess_array[white_index]
+        end
+      end
+
+      unused_numbers = numbers - used_numbers
+      4.times do |i|
+        if result[i] == nil
+          result[i] =  unused_numbers.sample
+        end
+      end
+    end
+    return result
+  end
+
+  def give_code()
+    puts "\nGive me code that you want me to guess.".cyan
+    self.code = Game.get_player_choice()
+    numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    guess_array = [1, 2, 3, 4]
+    x = 1
+    max_rounds = 11
+    result = []
+    while x < max_rounds
+    guess_array = guess_code_given(self.code, guess_array, result)
+    result = check_choice(self.code, guess_array)
+    puts "Round #{x}. Guessing: ".cyan
+    puts "#{guess_array[0]} #{guess_array[1]} #{guess_array[2]} #{guess_array[3]}"
+    puts "#{result[0]} #{result[1]} #{result[2]} #{result[3]}"
+    if !self.is_won?(result) && x == max_rounds-1
+      puts "YOU WON!".bg_green
+    elsif self.is_won?(result) 
+      puts "YOU LOST!".bg_red
+      break
+    end
+    x += 1
+    end
+
+  end
+
+  def game_loop()
+    puts "\n                 " + "MASTERMIND GAME".bg_magenta
+    puts "\n                    GAMEMODES:".magenta
+    puts "1: You must guess the 4 digit code".brown
+    puts "2: You type the 4 digit code and I guess".cyan
+    input = gets.chomp
+    if input == "1"
+      self.guess()
+    elsif input == "2"
+      self.give_code()
+    else
+      puts "Wrong input"
+    end
+  end
+
 end
 
 g1 = Game.new([1,2,3,4])
