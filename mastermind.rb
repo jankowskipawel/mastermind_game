@@ -124,12 +124,11 @@ attr_accessor :code
   def guess()
     puts "\nGuess what 4 digit code I am thinking of. Digits (1-9)".brown
     puts "w" + " - digit is in code but not in this spot | ".brown + "r".red + " - digit is in this spot".brown
-    round = 0
-    max_rounds = 4
+    round = 1
+    max_rounds = 11
     self.randomize()
     while round < max_rounds
-      print self.code 
-      puts "\n"
+      puts "\nRound #{round}"
       choice = Game.get_player_choice()
       colors = check_choice(self.code, choice)
       puts "#{colors[0]} #{colors[1]} #{colors[2]} #{colors[3]}"
@@ -139,6 +138,7 @@ attr_accessor :code
         break
       elsif !self.is_won?(colors) && round == max_rounds-1
         puts "YOU LOST!".bg_red
+        puts "It was #{self.code}"
       end
       round += 1
     end
@@ -201,7 +201,8 @@ attr_accessor :code
     while x < max_rounds
     guess_array = guess_code_given(self.code, guess_array, result)
     result = check_choice(self.code, guess_array)
-    puts "Round #{x}. Guessing: ".cyan
+    puts "\nRound #{x}. Guessing: ".cyan
+    sleep(1)
     puts "#{guess_array[0]} #{guess_array[1]} #{guess_array[2]} #{guess_array[3]}"
     puts "#{result[0]} #{result[1]} #{result[2]} #{result[3]}"
     if !self.is_won?(result) && x == max_rounds-1
@@ -216,17 +217,25 @@ attr_accessor :code
   end
 
   def game_loop()
-    puts "\n                 " + "MASTERMIND GAME".bg_magenta
-    puts "\n                    GAMEMODES:".magenta
-    puts "1: You must guess the 4 digit code".brown
-    puts "2: You type the 4 digit code and I guess".cyan
-    input = gets.chomp
-    if input == "1"
-      self.guess()
-    elsif input == "2"
-      self.give_code()
-    else
-      puts "Wrong input"
+    play_again = false
+      while !play_again
+      puts "\n                 " + "MASTERMIND GAME".bg_magenta
+      puts "\n                    GAMEMODES:".magenta
+      puts "1: You must guess the 4 digit code".brown
+      puts "2: You type the 4 digit code and I guess".cyan
+      input = gets.chomp
+      if input == "1"
+        self.guess()
+      elsif input == "2"
+        self.give_code()
+      else
+        puts "Wrong input"
+      end
+      puts "\n" + "Play again? (y/n):".blink.reverse_color
+      pa = gets.chomp
+      if pa != "y"
+        play_again = true
+      end
     end
   end
 
